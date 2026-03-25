@@ -1,0 +1,8 @@
+.vs
+.idea
+obj/
+bin/
+.claude
+logs/
+*ncrunch*
+*.DotSettings.user

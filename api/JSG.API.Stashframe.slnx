@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/config/">
+    <File Path="../docker-compose.yml" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="JSG.API.Stashframe.Core/JSG.API.Stashframe.Core.csproj" />
+  <Project Path="JSG.API.Stashframe.Repositories/JSG.API.Stashframe.Repositories.csproj" />
+  <Project Path="JSG.API.Stashframe.Services/JSG.API.Stashframe.Services.csproj" />
+  <Project Path="JSG.API.Stashframe/JSG.API.Stashframe.csproj" />
+</Solution>
