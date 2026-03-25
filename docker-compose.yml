@@ -1,0 +1,35 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: stashframe-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  postgres:
+    image: postgres:17
+    container_name: stashframe-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: stashframe
+      POSTGRES_PASSWORD: stashframe
+      POSTGRES_DB: stashframe
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: stashframe-azurite
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - azurite_data:/data
+
+volumes:
+  redis_data:
+  postgres_data:
+  azurite_data:

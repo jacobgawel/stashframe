@@ -1,0 +1,23 @@
+meta {
+  name: generate signed url
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/upload
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "fileName": "dog.png",
+    "contentType": "image/png"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

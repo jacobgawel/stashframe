@@ -1,0 +1,38 @@
+meta {
+  name: blob
+  type: http
+  seq: 2
+}
+
+put {
+  url: https://stashframe.blob.core.windows.net/stashframe-raw/b8d1dcab-d959-4e46-8973-c75644258b1c/8ea5e1f7-fa89-4d9d-bc60-5eb7fd12d177/original.png?sv=2026-02-06&se=2026-03-24T15:55:42Z&sr=b&sp=cw&rsct=image/png&sig=3I6lfolSda6pQxX9ZqvFwzlk3zD3iSP9lTjz85bXA7M=
+  body: file
+  auth: inherit
+}
+
+params:query {
+  sv: 2026-02-06
+  se: 2026-03-24T15:55:42Z
+  sr: b
+  sp: cw
+  rsct: image/png
+  sig: 3I6lfolSda6pQxX9ZqvFwzlk3zD3iSP9lTjz85bXA7M=
+}
+
+headers {
+  x-ms-blob-content-type: image/jpeg
+  " x-ms-blob-type": BlockBlob
+}
+
+body:multipart-form {
+  file: @file(C:\Users\jakeg\Pictures\24893890.png)
+}
+
+body:file {
+  file: @file(C:\Users\jakeg\Pictures\Screenshot 2026-02-16 000611.png) @contentType(image/png)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
