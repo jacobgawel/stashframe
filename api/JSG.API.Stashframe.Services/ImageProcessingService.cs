@@ -37,7 +37,8 @@ public class ImageProcessingService(ILogger<ImageProcessingService> logger) : II
 
     public async Task<Stream> OptimiseAsync(Image image, OutputFormat format)
     {
-        logger.LogDebug("Optimising image ({SourceWidth}x{SourceHeight}) to {Format}", image.Width, image.Height, format);
+        logger.LogDebug("Optimising image ({SourceWidth}x{SourceHeight}) to {Format}", image.Width, image.Height,
+            format);
 
         var output = new MemoryStream();
 
@@ -66,7 +67,8 @@ public class ImageProcessingService(ILogger<ImageProcessingService> logger) : II
         var ratio = (double)targetWidth / image.Width;
         var targetHeight = (int)(image.Height * ratio);
 
-        logger.LogDebug("Resizing image from {SourceWidth}x{SourceHeight} to {TargetWidth}x{TargetHeight}", image.Width, image.Height, targetWidth, targetHeight);
+        logger.LogDebug("Resizing image from {SourceWidth}x{SourceHeight} to {TargetWidth}x{TargetHeight}", image.Width,
+            image.Height, targetWidth, targetHeight);
 
         var clone = image.Clone(ctx => ctx.Resize(new ResizeOptions
         {
@@ -81,7 +83,8 @@ public class ImageProcessingService(ILogger<ImageProcessingService> logger) : II
 
         output.Position = 0;
 
-        logger.LogDebug("Resize complete — {TargetWidth}x{TargetHeight}, {OutputSize} bytes", targetWidth, targetHeight, output.Length);
+        logger.LogDebug("Resize complete — {TargetWidth}x{TargetHeight}, {OutputSize} bytes", targetWidth, targetHeight,
+            output.Length);
 
         return output;
     }

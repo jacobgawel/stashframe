@@ -17,9 +17,11 @@ public class MediaStorageService(
     IMediaStorageRepository mediaStorageRepository,
     ILogger<MediaStorageService> logger) : IMediaStorageService
 {
-    async Task IMediaStorageService.UploadProcessedAsync(string blobContainer, string path, Stream stream, string contentType)
+    async Task IMediaStorageService.UploadProcessedAsync(string blobContainer, string path, Stream stream,
+        string contentType)
     {
-        logger.LogInformation("Uploading processed blob to {Container}/{Path} ({ContentType})", blobContainer, path, contentType);
+        logger.LogInformation("Uploading processed blob to {Container}/{Path} ({ContentType})", blobContainer, path,
+            contentType);
 
         var containerClient = blobServiceClient.GetBlobContainerClient(blobContainer);
         var blobClient = containerClient.GetBlobClient(path);
@@ -49,9 +51,11 @@ public class MediaStorageService(
         return response.Value.Content;
     }
 
-    async Task<SasUploadResult> IMediaStorageService.GenerateUploadSasAsync(string contentType, string fileName, long fileSize, TimeSpan expiry)
+    async Task<SasUploadResult> IMediaStorageService.GenerateUploadSasAsync(string contentType, string fileName,
+        long fileSize, TimeSpan expiry)
     {
-        logger.LogInformation("Generating SAS upload URL for {FileName} ({ContentType}, {FileSize} bytes)", fileName, contentType, fileSize);
+        logger.LogInformation("Generating SAS upload URL for {FileName} ({ContentType}, {FileSize} bytes)", fileName,
+            contentType, fileSize);
 
         var containerClient = blobServiceClient.GetBlobContainerClient(BlobContainers.Raw);
 
@@ -103,7 +107,9 @@ public class MediaStorageService(
             CreatedAt = DateTime.UtcNow
         });
 
-        logger.LogInformation("Media record created and SAS URL generated for {MediaId} (user {UserId}, category {Category}, blob {BlobName})", mediaId, userId, category.Value, blobName);
+        logger.LogInformation(
+            "Media record created and SAS URL generated for {MediaId} (user {UserId}, category {Category}, blob {BlobName})",
+            mediaId, userId, category.Value, blobName);
 
         return new SasUploadResult
         {
