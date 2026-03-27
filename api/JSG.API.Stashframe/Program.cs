@@ -25,19 +25,7 @@ var credential = new DefaultAzureCredential();
 
 #region Cache
 
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    options.InstanceName = typeof(Program).Assembly.GetName().Name!.ToLowerInvariant() + ":";
-});
-
-builder.Services.AddHybridCache(options =>
-{
-    options.DefaultEntryOptions = new HybridCacheEntryOptions
-    {
-        Flags = HybridCacheEntryFlags.DisableLocalCache
-    };
-});
+builder.Services.AddCaching(builder.Configuration);
 
 #endregion
 
