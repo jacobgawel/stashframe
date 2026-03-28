@@ -2,7 +2,7 @@
 
 namespace JSG.API.Stashframe.Core.Sagas.Contracts;
 
-public class ProcessingTimedOut : CorrelatedBy<Guid>
+public record ProcessingTimedOut : CorrelatedBy<Guid>
 {
     public Guid MediaId { get; set; }
 

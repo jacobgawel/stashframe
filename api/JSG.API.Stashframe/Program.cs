@@ -34,6 +34,7 @@ builder.Services.AddCaching(builder.Configuration);
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<ProcessImageConsumer>();
+    x.AddConsumer<ProcessFailedConsumer>();
 
     x.UsingAzureServiceBus((context, cfg) =>
     {

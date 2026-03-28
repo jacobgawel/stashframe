@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using JSG.API.Stashframe.Core.Constants;
-using JSG.API.Stashframe.Core.Database;
 using JSG.API.Stashframe.Core.Enums;
 using JSG.API.Stashframe.Core.Interfaces.Services;
 using JSG.API.Stashframe.Core.Sagas.MediaProcessing.Contracts;
@@ -16,8 +15,7 @@ public class ProcessImageConsumer(
     ILogger<ProcessImageConsumer> logger,
     IPublishEndpoint publishEndpoint,
     IMediaStorageService storage,
-    IImageProcessingService imageProcessor,
-    StashframeContext databaseContext) : IConsumer<ProcessImage>
+    IImageProcessingService imageProcessor) : IConsumer<ProcessImage>
 {
     public async Task Consume(ConsumeContext<ProcessImage> context)
     {
@@ -27,7 +25,7 @@ public class ProcessImageConsumer(
         logger.LogInformation("Processing image for {MediaId} (CorrelationId: {CorrelationId})", message.MediaId,
             message.CorrelationId);
 
-        var media = await databaseContext.Media.FindAsync(message.MediaId);
+        var media = await storage.GetMediaAsync(message.MediaId);
 
         if (media is null)
         {
@@ -35,20 +33,24 @@ public class ProcessImageConsumer(
             return;
         }
 
+        var lap = Stopwatch.StartNew();
+
         logger.LogInformation("Downloading raw blob for {MediaId} from {BlobPath}", media.Id, media.RawBlobPath);
         await using var rawStream = await storage.DownloadAsync(BlobContainers.Raw, media.RawBlobPath);
+        logger.LogDebug("Download completed for {MediaId} in {ElapsedMs}ms", media.Id, lap.ElapsedMilliseconds);
 
+        lap.Restart();
         using var image = await Image.LoadAsync(rawStream);
-        logger.LogInformation("Image loaded for {MediaId} — {Width}x{Height}", media.Id, image.Width, image.Height);
+        logger.LogDebug("Image decoded for {MediaId} in {ElapsedMs}ms — {Width}x{Height}", media.Id, lap.ElapsedMilliseconds, image.Width, image.Height);
 
-        media.Width = image.Width;
-        media.Height = image.Height;
-
-        logger.LogInformation("Optimising full-size WebP for {MediaId}", media.Id);
+        lap.Restart();
         var fullWebp = await imageProcessor.OptimiseAsync(image, OutputFormat.WebP);
-        var fullPath = BlobPaths.ScreenshotFull(message.MediaId);
+        logger.LogDebug("Full WebP encode for {MediaId} in {ElapsedMs}ms", media.Id, lap.ElapsedMilliseconds);
 
+        lap.Restart();
+        var fullPath = BlobPaths.ScreenshotFull(message.MediaId);
         await storage.UploadProcessedAsync(BlobContainers.Screenshots, fullPath, fullWebp, "image/webp");
+        logger.LogDebug("Full WebP upload for {MediaId} in {ElapsedMs}ms", media.Id, lap.ElapsedMilliseconds);
 
         var sizes = new[]
         {
@@ -57,16 +59,20 @@ public class ProcessImageConsumer(
 
         foreach (var (variant, width) in sizes)
         {
-            logger.LogInformation("Generating {Variant} thumbnail ({Width}px) for {MediaId}", variant, width, media.Id);
+            lap.Restart();
             var thumb = await imageProcessor.ResizeAsync(image, width);
             var thumbPath = BlobPaths.ScreenshotThumb(message.MediaId, variant);
             await storage.UploadProcessedAsync(BlobContainers.Thumbnails, thumbPath, thumb, "image/webp");
+            logger.LogDebug("Thumbnail {Variant} ({Width}px) for {MediaId} in {ElapsedMs}ms", variant, width, media.Id, lap.ElapsedMilliseconds);
         }
 
         stopwatch.Stop();
 
         logger.LogInformation("Image processing completed for {MediaId} in {ElapsedMs}ms — publishing ImageProcessed",
             media.Id, stopwatch.ElapsedMilliseconds);
+
+        await storage.ProcessedImageUpdateAsync(media.Id, MediaStatus.Ready, image.Height, image.Width,
+            fullWebp.Length);
 
         await publishEndpoint.Publish(new ImageProcessed
         {

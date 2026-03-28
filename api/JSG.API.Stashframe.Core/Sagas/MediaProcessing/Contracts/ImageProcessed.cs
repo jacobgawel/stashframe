@@ -1,6 +1,6 @@
 ﻿namespace JSG.API.Stashframe.Core.Sagas.MediaProcessing.Contracts;
 
-public class ImageProcessed
+public record ImageProcessed
 {
     // Events consumers publish back to the saga
     public Guid MediaId { get; set; }

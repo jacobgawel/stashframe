@@ -37,6 +37,54 @@ public class MediaStorageService(
         logger.LogInformation("Processed blob uploaded to {Container}/{Path}", blobContainer, path);
     }
 
+    async Task<ConfirmUploadResult> IMediaStorageService.ConfirmUploadAsync(Guid mediaId)
+    {
+        var media = await mediaStorageRepository.GetByIdAsync(mediaId);
+
+        if (media is null)
+            return new ConfirmUploadResult(ConfirmUploadStatus.MediaNotFound);
+
+        if (media.MediaStatus is not MediaStatus.Pending)
+            return new ConfirmUploadResult(ConfirmUploadStatus.AlreadyClaimed);
+
+        var container = blobServiceClient.GetBlobContainerClient(BlobContainers.Raw);
+        var exists = await container.GetBlobClient(media.RawBlobPath).ExistsAsync();
+
+        if (!exists.Value)
+            return new ConfirmUploadResult(ConfirmUploadStatus.BlobNotFound);
+
+        var claimed = await mediaStorageRepository.UpdateToProcessingAsync(mediaId);
+
+        if (!claimed)
+        {
+            return new ConfirmUploadResult(ConfirmUploadStatus.AlreadyClaimed);
+        }
+
+        return new ConfirmUploadResult(ConfirmUploadStatus.Success, media.Category);
+    }
+
+    async Task<bool> IMediaStorageService.UpdateToProcessingAsync(Guid mediaId)
+    {
+        return await mediaStorageRepository.UpdateToProcessingAsync(mediaId);
+    }
+
+    async Task IMediaStorageService.ProcessedImageUpdateAsync(Guid mediaId, MediaStatus mediaStatus, int width,
+        int height, long bytes)
+    {
+        await mediaStorageRepository.ProcessedImageUpdateAsync(mediaId, mediaStatus, width, height, bytes);
+    }
+
+    public Task<bool> UpdateToFailedAsync(Guid mediaId)
+    {
+        return mediaStorageRepository.UpdateToFailedAsync(mediaId);
+    }
+
+    public Task<Media?> GetMediaAsync(Guid mediaId)
+    {
+        logger.LogDebug("Retrieving media {Id}", mediaId);
+        return mediaStorageRepository.GetByIdAsync(mediaId);
+    }
+
     async Task<Stream> IMediaStorageService.DownloadAsync(string blobContainer, string blobPath)
     {
         logger.LogInformation("Downloading blob from {Container}/{BlobPath}", blobContainer, blobPath);

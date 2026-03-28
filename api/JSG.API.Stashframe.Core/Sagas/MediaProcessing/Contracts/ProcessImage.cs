@@ -1,6 +1,6 @@
 ﻿namespace JSG.API.Stashframe.Core.Sagas.MediaProcessing.Contracts;
 
-public class ProcessImage
+public record ProcessImage
 {
     // Commands the saga sends to consumers
     public Guid MediaId { get; set; }

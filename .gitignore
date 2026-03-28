@@ -5,4 +5,4 @@ bin/
 .claude
 logs/
 *ncrunch*
-*.DotSettings.user
+*.user

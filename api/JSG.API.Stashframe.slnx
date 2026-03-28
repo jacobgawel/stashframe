@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/config/">
+    <File Path="../.gitignore" />
     <File Path="../docker-compose.yml" />
     <File Path="README.md" />
   </Folder>

@@ -12,8 +12,6 @@ public class MediaProcessingSaga : MassTransitStateMachine<MediaProcessingState>
 {
     // States
     public State Processing { get; set; } = null!;
-    public State Failed { get; set; } = null!;
-
 
     // Events
     public Event<UploadCompleted> UploadCompleted { get; set; } = null!;
@@ -29,7 +27,7 @@ public class MediaProcessingSaga : MassTransitStateMachine<MediaProcessingState>
         InstanceState(x => x.CurrentState);
 
         // UploadCompleted uses MediaId as the saga identifier
-        Event(() => UploadCompleted, x => 
+        Event(() => UploadCompleted, x =>
             x.CorrelateById(ctx => ctx.Message.MediaId));
 
         // Completion events correlate by CorrelationId
@@ -79,8 +77,13 @@ public class MediaProcessingSaga : MassTransitStateMachine<MediaProcessingState>
                 })
                 .Finalize(),
             When(ProcessingTimeout.Received)
-                .Then(ctx => ctx.Saga.Updated = DateTime.UtcNow)
-                .TransitionTo(Failed)
+                .Publish(ctx => new FailedProcessing
+                {
+                    MediaId = ctx.Saga.MediaId,
+                    CorrelationId = ctx.Saga.CorrelationId
+                })
+                .Finalize(),
+            Ignore(UploadCompleted)
         );
 
         SetCompletedWhenFinalized();
