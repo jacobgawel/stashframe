@@ -59,6 +59,12 @@ public class ProcessImageConsumer(
 
         foreach (var (variant, width) in sizes)
         {
+            if (width >= image.Width)
+            {
+                logger.LogDebug("Skipping {Variant} thumbnail ({Width}px) for {MediaId} — source is only {SourceWidth}px", variant, width, media.Id, image.Width);
+                continue;
+            }
+
             lap.Restart();
             var thumb = await imageProcessor.ResizeAsync(image, width);
             var thumbPath = BlobPaths.ScreenshotThumb(message.MediaId, variant);
